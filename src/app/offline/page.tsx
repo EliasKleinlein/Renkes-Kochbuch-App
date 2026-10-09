@@ -12,6 +12,11 @@ export default function OfflinePage() {
           Bitte prüfe deine Internetverbindung und versuche es anschließend
           erneut.
         </p>
+        <p className="mx-auto mt-4 max-w-lg font-serif text-base leading-7 text-[#654a36]">
+          Rezepte, chinesische Rezepte und bereits geöffnete Seiten sind auch
+          offline verfügbar. Persönliche Schreib-Links für das Dankesbuch
+          funktionieren nur mit Internetverbindung.
+        </p>
       </section>
     </main>
   );

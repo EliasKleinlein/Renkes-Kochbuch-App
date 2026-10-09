@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import KitchenMasterExperience from "@/components/KitchenMasterExperience";
-import { ensureLocalRecipesInitialized } from "@/components/RecipeBootstrap";
+import {
+  RECIPES_SYNCHRONIZED_EVENT,
+  ensureLocalRecipesInitialized,
+} from "@/components/RecipeBootstrap";
 import { LocalFirstRecipeFacade } from "@/lib/recipes/facade.client";
 import type { RecipeData } from "@/schemas/recipeSchema";
 
@@ -23,7 +26,7 @@ export default function RecipeExperienceClient() {
   useEffect(() => {
     let active = true;
 
-    void (async () => {
+    const load = async () => {
       let bootstrapFailed = false;
 
       try {
@@ -48,10 +51,15 @@ export default function RecipeExperienceClient() {
           setState({ status: "error", recipes: [] });
         }
       }
-    })();
+    };
+
+    void load();
+    const reload = () => void load();
+    window.addEventListener(RECIPES_SYNCHRONIZED_EVENT, reload);
 
     return () => {
       active = false;
+      window.removeEventListener(RECIPES_SYNCHRONIZED_EVENT, reload);
     };
   }, []);
 

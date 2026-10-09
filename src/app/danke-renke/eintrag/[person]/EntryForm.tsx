@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { OFFLINE_MESSAGES, isNetworkError, isOffline } from "@/lib/offline/messages";
+import { useOnlineStatus } from "@/lib/offline/online-status";
 
 type Props = {
   personId: string;
@@ -16,6 +18,7 @@ export default function EntryForm({
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState("");
   const [saving, setSaving] = useState(false);
+  const online = useOnlineStatus();
 
   useEffect(() => {
     fetch("/api/thanks")
@@ -25,14 +28,23 @@ export default function EntryForm({
           setMessage(data.messages[personId]);
         }
       })
-      .catch(() => {
-        setStatus("Der bisherige Eintrag konnte nicht geladen werden.");
+      .catch((error: unknown) => {
+        setStatus(
+          isOffline() || isNetworkError(error)
+            ? OFFLINE_MESSAGES.thanksEntryLoad
+            : "Der bisherige Eintrag konnte nicht geladen werden.",
+        );
       });
   }, [personId]);
 
   async function save() {
     if (!message.trim()) {
       setStatus("Schreib Renke bitte erst ein paar Worte. ❤️");
+      return;
+    }
+
+    if (isOffline()) {
+      setStatus(OFFLINE_MESSAGES.thanksEntrySave);
       return;
     }
 
@@ -61,9 +73,11 @@ export default function EntryForm({
       setStatus("❤️ Dein Eintrag wurde gespeichert. Danke!");
     } catch (error) {
       setStatus(
-        error instanceof Error
-          ? error.message
-          : "Speichern fehlgeschlagen."
+        isOffline() || isNetworkError(error)
+          ? OFFLINE_MESSAGES.thanksEntrySave
+          : error instanceof Error
+            ? error.message
+            : "Speichern fehlgeschlagen."
       );
     } finally {
       setSaving(false);
@@ -102,11 +116,17 @@ export default function EntryForm({
         <button
           type="button"
           onClick={save}
-          disabled={saving}
+          disabled={saving || !online}
           className="mt-6 rounded-xl bg-[#70472f] px-7 py-4 text-lg font-semibold text-[#fff3dc] transition hover:bg-[#5b3928] disabled:opacity-50"
         >
           {saving ? "Wird gespeichert …" : "Für Renke speichern ❤️"}
         </button>
+
+        {!online && (
+          <p role="status" className="mt-5 text-lg font-medium">
+            {OFFLINE_MESSAGES.thanksEntryOffline}
+          </p>
+        )}
 
         {status && (
           <p className="mt-5 text-lg font-medium">

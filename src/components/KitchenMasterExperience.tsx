@@ -7,6 +7,8 @@ import Image from "next/image";
 import { FormEvent, useMemo, useState } from "react";
 import { LocalFirstRecipeFacade } from "@/lib/recipes/facade.client";
 import type { RecipeData } from "@/schemas/recipeSchema";
+import { OFFLINE_MESSAGES } from "@/lib/offline/messages";
+import { useOnlineStatus } from "@/lib/offline/online-status";
 
 type RecipeCardData = Pick<
   RecipeData,
@@ -93,6 +95,7 @@ export default function KitchenMasterExperience({
   const [searchResults, setSearchResults] = useState<RecipeCardData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const online = useOnlineStatus();
 
   const filteredRecipes = useMemo(() => {
     const sourceRecipes = submittedQuery ? searchResults : recipes;
@@ -249,7 +252,13 @@ export default function KitchenMasterExperience({
               </p>
             )}
 
-            {(query || submittedQuery) && (
+            {(query || submittedQuery) && !online && (
+              <p data-websearch-offline className="mt-4 text-sm font-bold text-[#f1ca72]">
+                {OFFLINE_MESSAGES.webSearch}
+              </p>
+            )}
+
+            {(query || submittedQuery) && online && (
               <a
                 href={webSearchUrl}
                 target="_blank"
