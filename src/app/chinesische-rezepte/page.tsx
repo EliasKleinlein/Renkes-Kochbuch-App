@@ -21,6 +21,7 @@ export default function ChineseRecipesPage() {
             alt="Chinesische Rezeptbibliothek"
             width={2172}
             height={724}
+            unoptimized
             priority
             className="h-auto w-full rounded-[2rem] shadow-[0_24px_70px_rgba(0,0,0,.38)]"
           />

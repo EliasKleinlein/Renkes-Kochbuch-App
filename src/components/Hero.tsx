@@ -6,6 +6,7 @@ export default function Hero() {
       <Image
         src="/images/hero/renkes-kochbuch-container-neu-final.png"
         alt="Renkes Kochbuch mit Renke und Christophus"
+        unoptimized
         width={1102}
         height={1376}
         priority

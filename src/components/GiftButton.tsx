@@ -21,6 +21,7 @@ export default function GiftButton() {
           src="/images/CHR.webp"
           alt="Der kleine Küchendrache Christophus"
           fill
+          unoptimized
           sizes="112px"
           className="object-contain object-bottom drop-shadow-[0_10px_16px_rgba(0,0,0,.38)] transition duration-300 group-hover/dragon:-translate-y-1 group-hover/dragon:scale-105 group-focus-visible/dragon:-translate-y-1 group-focus-visible/dragon:scale-105"
         />
@@ -35,6 +36,7 @@ export default function GiftButton() {
           src="/images/magietrank-kessel-button.webp"
           alt=""
           fill
+          unoptimized
           sizes="144px"
           className="object-contain drop-shadow-[0_0_24px_rgba(185,255,78,.38)] transition duration-300 group-hover:brightness-110 group-hover:drop-shadow-[0_0_34px_rgba(194,255,91,.68)]"
         />
