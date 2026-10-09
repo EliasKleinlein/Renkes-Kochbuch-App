@@ -86,6 +86,7 @@ export default function RenkeRecipeTip({ title, category, tags }: TipProps) {
           src={meta.image}
           alt={meta.alt}
           fill
+          unoptimized
           sizes="(max-width: 640px) 192px, 224px"
           className="object-contain object-bottom drop-shadow-[0_12px_16px_rgba(57,27,8,.3)]"
         />

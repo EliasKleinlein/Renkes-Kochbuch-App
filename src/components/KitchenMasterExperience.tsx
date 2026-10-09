@@ -2,20 +2,27 @@
 
 import GiftButton from "@/components/GiftButton";
 import RecipeGrid from "@/components/RecipeGrid";
-import { Flame, Search, Sparkles, X } from "lucide-react";
+import { CookingPot, Flame, Search, Sparkles, X } from "lucide-react";
 import Image from "next/image";
 import { FormEvent, useMemo, useState } from "react";
+import { LocalFirstRecipeFacade } from "@/lib/recipes/facade.client";
+import type { RecipeData } from "@/schemas/recipeSchema";
+import { OFFLINE_MESSAGES } from "@/lib/offline/messages";
+import { useOnlineStatus } from "@/lib/offline/online-status";
 
-type RecipeCardData = {
-  id: number;
-  title: string;
-  original_title: string;
-  category: string;
-  duration: number;
-  servings: number;
-  notes: string | null;
-  image: string | null;
-};
+type RecipeCardData = Pick<
+  RecipeData,
+  | "id"
+  | "title"
+  | "original_title"
+  | "category"
+  | "duration"
+  | "servings"
+  | "notes"
+  | "image"
+>;
+
+type RecipeExperienceStatus = "loading" | "ready" | "empty" | "error";
 
 type MasterId = "all" | "renke" | "walter" | "malte" | "brixel";
 
@@ -59,6 +66,7 @@ const MASTERS: Array<{
 const WALTER_WORDS = /gebäck|brot|brötchen|backstube|baguette|pizza/i;
 const MALTE_WORDS =
   /kuchen|torte|dessert|brownie|pancake|keks|muffin|süß|schokolade/i;
+const recipeRepository = new LocalFirstRecipeFacade();
 
 function recipeText(recipe: RecipeCardData) {
   return `${recipe.title} ${recipe.original_title} ${recipe.category} ${recipe.notes ?? ""}`;
@@ -76,8 +84,10 @@ function belongsToMaster(recipe: RecipeCardData, master: MasterId) {
 
 export default function KitchenMasterExperience({
   recipes,
+  status = "ready",
 }: {
   recipes: RecipeCardData[];
+  status?: RecipeExperienceStatus;
 }) {
   const [activeMaster, setActiveMaster] = useState<MasterId>("all");
   const [query, setQuery] = useState("");
@@ -85,6 +95,7 @@ export default function KitchenMasterExperience({
   const [searchResults, setSearchResults] = useState<RecipeCardData[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState("");
+  const online = useOnlineStatus();
 
   const filteredRecipes = useMemo(() => {
     const sourceRecipes = submittedQuery ? searchResults : recipes;
@@ -108,6 +119,10 @@ export default function KitchenMasterExperience({
   async function searchArchive(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    if (status === "loading") {
+      return;
+    }
+
     const normalizedQuery = query.trim();
 
     setActiveMaster("brixel");
@@ -122,17 +137,9 @@ export default function KitchenMasterExperience({
     setIsSearching(true);
 
     try {
-      const response = await fetch(
-        `/api/recipes/search?q=${encodeURIComponent(normalizedQuery)}`,
-      );
+      const results = await recipeRepository.search(normalizedQuery);
 
-      if (!response.ok) {
-        throw new Error("Suche fehlgeschlagen");
-      }
-
-      const data: { recipes: RecipeCardData[] } = await response.json();
-
-      setSearchResults(data.recipes);
+      setSearchResults(results);
       setSubmittedQuery(normalizedQuery);
 
       document.querySelector("#rezepte")?.scrollIntoView({
@@ -166,6 +173,7 @@ export default function KitchenMasterExperience({
           <Image
             src="/images/ui/kuechenmeister-schild.png"
             alt="Wähle deinen Küchenmeister"
+            unoptimized
             width={2048}
             height={640}
             className="block h-auto w-full"
@@ -187,6 +195,7 @@ export default function KitchenMasterExperience({
                 <Image
                   src={master.image}
                   alt={`${master.name} – ${master.role}`}
+                  unoptimized
                   fill
                   sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw"
                   className="object-contain object-bottom transition duration-500 group-hover:brightness-110"
@@ -231,7 +240,7 @@ export default function KitchenMasterExperience({
               />
               <button
                 type="submit"
-                disabled={isSearching}
+                disabled={isSearching || status === "loading"}
                 className="magic-glow rounded-full bg-[#294477] px-6 py-3 font-bold text-[#fff0c1] transition hover:-translate-y-1 hover:bg-[#385a98] disabled:cursor-wait disabled:opacity-60"
               >
                 {isSearching ? "Brixel sucht..." : "Archiv durchsuchen"}
@@ -243,7 +252,13 @@ export default function KitchenMasterExperience({
               </p>
             )}
 
-            {(query || submittedQuery) && (
+            {(query || submittedQuery) && !online && (
+              <p data-websearch-offline className="mt-4 text-sm font-bold text-[#f1ca72]">
+                {OFFLINE_MESSAGES.webSearch}
+              </p>
+            )}
+
+            {(query || submittedQuery) && online && (
               <a
                 href={webSearchUrl}
                 target="_blank"
@@ -281,6 +296,7 @@ export default function KitchenMasterExperience({
               <Image
                 src="/images/ui/renkes-beliebteste-rezepte.png"
                 alt="Renkes beliebteste Rezepte"
+                unoptimized
                 width={2048}
                 height={768}
                 priority
@@ -301,7 +317,19 @@ export default function KitchenMasterExperience({
             <GiftButton />
           </div>
         </div>
-        <RecipeGrid recipes={filteredRecipes} />
+        {status === "loading" ? (
+          <div className="paper-panel rounded-3xl p-10 text-center text-[#4c3321]">
+            <CookingPot className="mx-auto mb-4" size={42} />
+            <p className="fantasy-title text-3xl">Das Rezeptbuch wird geöffnet …</p>
+          </div>
+        ) : status === "error" ? (
+          <div className="paper-panel rounded-3xl p-10 text-center text-[#4c3321]">
+            <CookingPot className="mx-auto mb-4" size={42} />
+            <p className="fantasy-title text-3xl">Das lokale Rezeptbuch ist gerade nicht verfügbar.</p>
+          </div>
+        ) : (
+          <RecipeGrid recipes={filteredRecipes} />
+        )}
       </section>
     </>
   );

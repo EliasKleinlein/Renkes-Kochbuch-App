@@ -1,7 +1,18 @@
 import { CookingPot } from "lucide-react";
+import type { RecipeData } from "@/schemas/recipeSchema";
 import RecipeCard from "./RecipeCard";
 
-type Recipe = { id: number; title: string; original_title: string; category: string; duration: number; servings: number; notes: string | null; image: string | null };
+type Recipe = Pick<
+  RecipeData,
+  | "id"
+  | "title"
+  | "original_title"
+  | "category"
+  | "duration"
+  | "servings"
+  | "notes"
+  | "image"
+>;
 
 export default function RecipeGrid({ recipes }: { recipes: Recipe[] }) {
   if (recipes.length === 0) {

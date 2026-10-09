@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { OFFLINE_MESSAGES, isNetworkError, isOffline } from "@/lib/offline/messages";
+import { useOnlineStatus } from "@/lib/offline/online-status";
 import { motion } from "framer-motion";
 import Image from "next/image";
 type Person = {
@@ -13,13 +15,13 @@ const people: Person[] = [
   { id: "muju", name: "Muju", portrait: "/images/class/muju.webp" },
   { id: "elias", name: "Elias", portrait: "/images/class/optimized/elias-robotik.webp" },
   { id: "eric", name: "Eric", portrait: "/images/class/eric.png" },
-  { id: "marco", name: "Marco", portrait: "/images/class/marco-stafford.png" },
+  { id: "marco", name: "Marco", portrait: "/images/class/marco-stafford.webp" },
   { id: "christoph", name: "Christopher", portrait: "/images/class/optimized/christoph-matrix.webp" },
   { id: "kevin", name: "Kevin", portrait: "/images/class/optimized/kevin-leetcode.webp" },
   { id: "niko", name: "Niko", portrait: "/images/class/optimized/niko.webp" },
   { id: "marlin", name: "Marlin", portrait: "/images/class/optimized/marlin.webp" },
   { id: "daniel", name: "Daniel", portrait: "/images/class/daniel.png" },
-  { id: "pavel", name: "Pavel", portrait: "/images/kitchen-masters/pavel.png" },
+  { id: "pavel", name: "Pavel", portrait: "/images/kitchen-masters/pavel.webp" },
 ];
 
 const names = people.map((person) => person.name).join(" · ");
@@ -106,6 +108,8 @@ export default function ClassThankYouBook() {
   const [page, setPage] = useState(-1);
   const [textPage, setTextPage] = useState(0);
   const [messages, setMessages] = useState<Record<string, string>>({});
+  const [loadNotice, setLoadNotice] = useState("");
+  const online = useOnlineStatus();
 
   useEffect(() => {
     people
@@ -118,6 +122,10 @@ export default function ClassThankYouBook() {
   }, []);
 
   useEffect(() => {
+    if (!online) {
+      return;
+    }
+
     fetch("/api/thanks")
       .then((response) => {
         if (!response.ok) {
@@ -127,11 +135,17 @@ export default function ClassThankYouBook() {
       })
       .then((data) => {
         setMessages(data.messages ?? {});
+        setLoadNotice("");
       })
       .catch((error) => {
         console.error("Dankes-Einträge laden:", error);
+        setLoadNotice(
+          isOffline() || isNetworkError(error)
+            ? OFFLINE_MESSAGES.thanksLoad
+            : "Die Einträge konnten gerade nicht geladen werden.",
+        );
       });
-  }, []);
+  }, [online]);
   const [turning, setTurning] = useState(false);
   const [targetPage, setTargetPage] = useState<number | null>(null);
   const [targetTextPage, setTargetTextPage] = useState(0);
@@ -444,6 +458,11 @@ export default function ClassThankYouBook() {
           <h1 className="font-serif text-4xl text-[#ffe5b0] drop-shadow-[0_3px_14px_rgba(255,170,72,.35)] sm:text-5xl">
             Danke Renke
           </h1>
+          {(loadNotice || !online) && (
+            <p role="status" className="mt-2 font-serif text-base text-[#ffe5b0]/85">
+              {online ? loadNotice : OFFLINE_MESSAGES.thanksLoad}
+            </p>
+          )}
         </div>
 
         <div

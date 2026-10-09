@@ -24,6 +24,7 @@ export default function Navbar() {
           <Image
             src="/images/header-home-sign.webp"
             alt=""
+            unoptimized
             fill
             sizes="(max-width: 1500px) 45vw, 675px"
             className="object-contain transition duration-300 group-hover:brightness-110"
@@ -39,6 +40,7 @@ export default function Navbar() {
           <Image
             src="/images/storytime-sticker-button.webp"
             alt=""
+            unoptimized
             fill
             sizes="(max-width: 640px) 22vw, (max-width: 1024px) 17vw, 15vw"
             className="object-contain transition duration-300 group-hover:brightness-110"
@@ -54,6 +56,7 @@ export default function Navbar() {
           <Image
             src="/images/recipes-hanging-button.webp"
             alt=""
+            unoptimized
             fill
             sizes="(max-width: 640px) 22vw, (max-width: 1024px) 17vw, 15vw"
             className="object-contain transition duration-300 group-hover:brightness-110"
@@ -69,6 +72,7 @@ export default function Navbar() {
           <Image
             src="/images/chinese-recipes-button.webp"
             alt=""
+            unoptimized
             fill
             sizes="(max-width: 640px) 27vw, (max-width: 1024px) 21vw, 18vw"
             className="object-contain transition duration-300 group-hover:brightness-110"

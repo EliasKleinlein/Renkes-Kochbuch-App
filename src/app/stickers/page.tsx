@@ -1,5 +1,8 @@
 import FantasyFooter from "@/components/FantasyFooter";
 import Navbar from "@/components/Navbar";
+import OfflineMediaCaching from "@/components/OfflineMediaCaching";
+
+const STICKER_VIDEO_SRC = "/video/test_video.mp4?v=1";
 
 export default function StickersPage() {
   return (
@@ -15,8 +18,9 @@ export default function StickersPage() {
           preload="auto"
           className="block h-auto w-full"
         >
-          <source src="/video/test_video.mp4?v=1" type="video/mp4" />
+          <source src={STICKER_VIDEO_SRC} type="video/mp4" />
         </video>
+        <OfflineMediaCaching src={STICKER_VIDEO_SRC} />
       </main>
 
       <FantasyFooter />

@@ -32,6 +32,7 @@ export default function ChristophusAdvice({
           src="/images/kitchen-masters/christophus.webp"
           alt="Der Drache Christophus als aufmerksamer Fehlerfinder"
           fill
+          unoptimized
           sizes="(max-width: 640px) 160px, 192px"
           className="object-contain object-bottom drop-shadow-[0_12px_18px_rgba(36,24,10,.3)]"
         />
